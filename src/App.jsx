@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useEffect } from 'react';
+
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
@@ -27,15 +29,27 @@ import ManageSettings from './pages/admin/ManageSettings';
 import ManageAnnouncements from './pages/admin/ManageAnnouncements';
 import ManageMessages from './pages/admin/ManageMessages';
 
-// Layout with Navbar + Footer - ticker only shows when showTicker is true
+/* ✅ SCROLL TO TOP COMPONENT */
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }, [pathname]);
+
+  return null;
+};
+
+// Layout with Navbar + Footer
 const PublicLayout = ({ children, showTicker = false }) => {
-  // Fixed navbar height - adjust based on your navbar
-  const navbarHeight = 110; // Navbar height in pixels
-  
+  const navbarHeight = 110;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Navbar />
-      {/* Push content below the fixed navbar */}
       <div style={{ marginTop: `${navbarHeight}px` }}>
         {showTicker && <NewsTicker />}
         <main style={{ flex: 1 }}>{children}</main>
@@ -66,15 +80,10 @@ const CustomerPage = ({ children }) => (
   </ProtectedRoute>
 );
 
-// Controls WHERE chatbot shows
+// Main App Content
 const AppContent = () => {
   const location = useLocation();
 
-  // Hide chatbot on:
-  // - Admin dashboard pages
-  // - Customer dashboard pages
-  // - Login page
-  // - Register page
   const hideChatbot =
     location.pathname.startsWith('/admin') ||
     location.pathname.startsWith('/dashboard') ||
@@ -84,43 +93,45 @@ const AppContent = () => {
 
   return (
     <>
-      {/* Chatbot shows on all pages EXCEPT admin, customer dashboards, login, and register */}
+      {/* ✅ FIX ADDED HERE */}
+      <ScrollToTop />
+
       {!hideChatbot && <MonaSoapChatbot />}
 
       <Routes>
-        {/* ── HOME PAGE ONLY with Ticker ── */}
+        {/* HOME */}
         <Route path="/" element={
           <PublicLayout showTicker={true}>
             <Home />
           </PublicLayout>
         } />
 
-        {/* ── Other Public Pages WITHOUT Ticker ── */}
+        {/* PUBLIC */}
         <Route path="/products" element={
-          <PublicLayout showTicker={false}>
+          <PublicLayout>
             <Products />
           </PublicLayout>
         } />
 
         <Route path="/product/:id" element={
-          <PublicLayout showTicker={false}>
+          <PublicLayout>
             <ProductDetail />
           </PublicLayout>
         } />
 
         <Route path="/contact" element={
-          <PublicLayout showTicker={false}>
+          <PublicLayout>
             <Contact />
           </PublicLayout>
         } />
 
         <Route path="/about" element={
-          <PublicLayout showTicker={false}>
+          <PublicLayout>
             <AboutUs />
           </PublicLayout>
         } />
 
-        {/* ── Auth Routes (No Chatbot) ── */}
+        {/* AUTH */}
         <Route path="/login" element={
           <CleanLayout>
             <Login />
@@ -133,7 +144,7 @@ const AppContent = () => {
           </CleanLayout>
         } />
 
-        {/* ── Customer Routes ── */}
+        {/* CUSTOMER */}
         <Route path="/dashboard" element={
           <CustomerPage><CustomerDashboard /></CustomerPage>
         } />
@@ -146,7 +157,7 @@ const AppContent = () => {
           <CustomerPage><PlaceOrder /></CustomerPage>
         } />
 
-        {/* ── Admin Routes ── */}
+        {/* ADMIN */}
         <Route path="/admin" element={
           <AdminPage><AdminDashboard /></AdminPage>
         } />
@@ -175,7 +186,7 @@ const AppContent = () => {
           <AdminPage><ManageMessages /></AdminPage>
         } />
 
-        {/* ── Catch all ── */}
+        {/* CATCH */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
