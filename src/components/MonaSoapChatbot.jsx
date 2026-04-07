@@ -9,7 +9,7 @@ const SUGGESTIONS = [
 ];
 
 const WHATSAPP_LINK = "https://wa.me/255613374380";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.REACT_API_URL || "https://monasoap-backend.onrender.com";
 
 const BLUE_DARK  = "#0c447c";
 const BLUE_MID   = "#185fa5";

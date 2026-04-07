@@ -149,7 +149,7 @@ const Products = () => {
                   <div className="pr-card__img-box">
                     {p.images?.length > 0 ? (
                       <img
-                        src={`http://localhost:5000/uploads/${p.images[0]}`}
+                      src={`https://monasoap-backend.onrender.com/uploads/${p.images[0]}`}
                         alt={p.name}
                         className={`pr-card__img ${hoveredCard === p._id ? 'pr-card__img--zoom' : ''}`}
                       />

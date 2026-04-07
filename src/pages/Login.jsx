@@ -16,27 +16,28 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
 
- const images = [
-  { 
-    url: soap1, 
-    title: 'Place Your Order', 
-    description: 'Browse our products and place your order quickly and securely in just a few simple steps.' 
-  },
-  { 
-    url: soap2, 
-    title: 'Fast & Reliable Delivery', 
-    description: 'We deliver your order straight to your doorstep with speed, care, and reliability you can trust.' 
-  },
-  { 
-    url: soap3, 
-    title: 'Track Your Order', 
-    description: 'Stay updated in real-time and track your order easily from dispatch to final delivery.' 
-  },
-];
+  const images = [
+    { 
+      url: soap1, 
+      title: 'Place Your Order', 
+      description: 'Browse our products and place your order quickly and securely in just a few simple steps.' 
+    },
+    { 
+      url: soap2, 
+      title: 'Fast & Reliable Delivery', 
+      description: 'We deliver your order straight to your doorstep with speed, care, and reliability you can trust.' 
+    },
+    { 
+      url: soap3, 
+      title: 'Track Your Order', 
+      description: 'Stay updated in real-time and track your order easily from dispatch to final delivery.' 
+    },
+  ];
+
   useEffect(() => {
     const t = setInterval(() => setCurrentImage(p => (p + 1) % images.length), 4000);
     return () => clearInterval(t);
-  }, []);
+  }, [images.length]);
 
   const handleChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 

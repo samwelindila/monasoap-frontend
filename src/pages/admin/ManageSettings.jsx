@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import API from '../../utils/api'; // ← Change: Use your API utility instead of axios
 
 const ManageSettings = () => {
   const [settings, setSettings] = useState({
@@ -33,10 +33,8 @@ const ManageSettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/settings', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // Changed: Use API utility instead of direct axios
+      const res = await API.get('/settings');
       setSettings({
         lipaNumber: res.data.lipaNumber || '',
         phone: res.data.phone || '',
@@ -52,6 +50,7 @@ const ManageSettings = () => {
       });
     } catch (err) {
       console.log('Error fetching settings:', err);
+      toast.error('Failed to load settings');
     } finally {
       setLoading(false);
     }
@@ -70,15 +69,23 @@ const ManageSettings = () => {
     }
   };
 
+  // Helper function to get image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    // Use your Render backend URL
+    return `https://monasoap-backend.onrender.com/uploads/${imagePath}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
 
     try {
-      // Create FormData
+      // Create FormData for file upload
       const formData = new FormData();
       
-      // IMPORTANT: Send as JSON string to avoid FormData issues
+      // Send settings as JSON string
       const settingsData = {
         lipaNumber: settings.lipaNumber,
         phone: settings.phone,
@@ -92,18 +99,15 @@ const ManageSettings = () => {
         aboutUs: settings.aboutUs
       };
       
-      // Append settings as JSON string
       formData.append('data', JSON.stringify(settingsData));
       
-      // Append image if exists
       if (image) {
         formData.append('aboutUsImage', image);
       }
 
-      const token = localStorage.getItem('token');
-      const response = await axios.put('http://localhost:5000/api/settings', formData, {
+      // Changed: Use API utility with FormData
+      const response = await API.put('/settings', formData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
@@ -112,7 +116,7 @@ const ManageSettings = () => {
         toast.success('Settings saved successfully!');
         setImage(null);
         setImagePreview(null);
-        await fetchSettings(); // Refresh data
+        await fetchSettings();
       }
     } catch (err) {
       console.error('Save error:', err);
@@ -408,7 +412,7 @@ const ManageSettings = () => {
               {(imagePreview || settings.aboutUsImage) && (
                 <div style={{ marginTop: '12px' }}>
                   <img
-                    src={imagePreview || `http://localhost:5000/uploads/${settings.aboutUsImage}`}
+                    src={imagePreview || getImageUrl(settings.aboutUsImage)}
                     alt="About Us"
                     style={{ width: '150px', borderRadius: '10px', border: '1px solid #e2e8f0' }}
                     onError={(e) => {

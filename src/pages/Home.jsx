@@ -3,6 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import API from '../utils/api';
 
+// Helper function for image URLs - FIXED for Render backend
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  if (imagePath.startsWith('http')) return imagePath;
+  return `https://monasoap-backend.onrender.com/uploads/${imagePath}`;
+};
+
 /* ── Typewriter ── */
 const useTypewriter = (words, speed = 110, pause = 1800) => {
   const [displayed, setDisplayed] = useState('');
@@ -239,7 +246,8 @@ const Home = () => {
                 >
                   <div className="ms-card__img-box">
                     {p.images?.length > 0 ? (
-                      <img src={`http://localhost:5000/uploads/${p.images[0]}`} alt={p.name}
+                      // FIXED: Using getImageUrl helper instead of hardcoded localhost
+                      <img src={getImageUrl(p.images[0])} alt={p.name}
                         className={`ms-card__img ${hoveredCard === p._id ? 'ms-card__img--zoom' : ''}`} />
                     ) : (
                       <div className="ms-card__no-img">🧼</div>

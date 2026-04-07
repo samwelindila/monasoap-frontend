@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../utils/api';
 
+// Helper function for image URLs
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  if (imagePath.startsWith('http')) return imagePath;
+  return `https://monasoap-backend.onrender.com/uploads/${imagePath}`;
+};
+
 const defaultAboutUs = `Welcome to MonaSoap — your trusted source for premium handcrafted soaps and body care products made right here in Tanzania.
 
 We believe that great skin care starts with pure, natural ingredients. Every product we create is carefully crafted using locally sourced natural materials that are gentle on your skin and kind to the environment.
@@ -613,7 +620,6 @@ const AboutUs = () => {
           .ab-hero { 
             padding: 40px 20px 28px; 
           }
-          /* Keep stats horizontal on mobile */
           .ab-hero__stats {
             display: flex;
             flex-direction: row;
@@ -665,7 +671,6 @@ const AboutUs = () => {
           .ab-values__grid { 
             grid-template-columns: 1fr; 
           }
-          /* Keep stats horizontal even on very small screens */
           .ab-hero__stats {
             flex-wrap: wrap;
             gap: 8px 0;
@@ -707,12 +712,12 @@ const AboutUs = () => {
 
         {/* ── STORY ── */}
         <div className="ab-story">
-          {/* Image */}
+          {/* Image - FIXED: No hardcoded localhost */}
           <div>
             {settings?.aboutUsImage ? (
               <div className="ab-story__img-wrap">
                 <img
-                  src={`http://localhost:5000/uploads/${settings.aboutUsImage}`}
+                  src={getImageUrl(settings.aboutUsImage)}
                   alt="About MonaSoap"
                   className="ab-story__img"
                 />

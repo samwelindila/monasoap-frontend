@@ -401,7 +401,8 @@ const ManageProducts = () => {
                   <tr key={product._id} style={{ borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ padding: '12px' }}>
                       {product.images && product.images.length > 0 ? (
-                        <img src={`http://localhost:5000/uploads/${product.images[0]}`} alt={product.name} style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '8px' }} />
+                        <img src={`https://monasoap-backend.onrender.com/uploads/${product.images[0]}`
+                       } alt={product.name} style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '8px' }} />
                       ) : (
                         <div style={{ width: '45px', height: '45px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🧼</div>
                       )}
@@ -443,7 +444,8 @@ const ManageProducts = () => {
               <div key={product._id} style={{ border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', marginBottom: '12px', background: '#fff' }}>
                 <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
                   {product.images && product.images.length > 0 ? (
-                    <img src={`http://localhost:5000/uploads/${product.images[0]}`} alt={product.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '10px' }} />
+                    <img src={`https://monasoap-backend.onrender.com/uploads/${product.images[0]}`}
+               alt={product.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '10px' }} />
                   ) : (
                     <div style={{ width: '60px', height: '60px', background: '#f1f5f9', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>🧼</div>
                   )}

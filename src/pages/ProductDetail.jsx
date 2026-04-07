@@ -4,6 +4,20 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import API from '../utils/api';
 
+// Helper function for image URLs
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  if (imagePath.startsWith('http')) return imagePath;
+  return `https://monasoap-backend.onrender.com/uploads/${imagePath}`;
+};
+
+// Helper function for video URLs
+const getVideoUrl = (videoPath) => {
+  if (!videoPath) return null;
+  if (videoPath.startsWith('http')) return videoPath;
+  return `https://monasoap-backend.onrender.com/uploads/${videoPath}`;
+};
+
 const ProductDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -165,7 +179,7 @@ const ProductDetail = () => {
             }}>
               {product.images && product.images.length > 0 ? (
                 <img
-                  src={`http://localhost:5000/uploads/${product.images[activeImage]}`}
+                  src={getImageUrl(product.images[activeImage])}
                   alt={product.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
@@ -182,7 +196,7 @@ const ProductDetail = () => {
                 {product.images.map((img, i) => (
                   <img
                     key={i}
-                    src={`http://localhost:5000/uploads/${img}`}
+                    src={getImageUrl(img)}
                     alt={`thumb-${i}`}
                     onClick={() => setActiveImage(i)}
                     style={{
@@ -203,7 +217,7 @@ const ProductDetail = () => {
                 </h4>
                 {product.videos.map((vid, i) => (
                   <video key={i} controls style={{ width: '100%', borderRadius: '12px', marginBottom: '12px' }}>
-                    <source src={`http://localhost:5000/uploads/${vid}`} />
+                    <source src={getVideoUrl(vid)} />
                   </video>
                 ))}
               </div>
