@@ -68,6 +68,17 @@ const ManageProducts = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Helper function to get image URL (handles both old and new formats)
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    // If it's already a full URL (Cloudinary), return as is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    // Otherwise, it's a local filename (old format)
+    return `https://monasoap-backend.onrender.com/uploads/${imagePath}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -78,6 +89,8 @@ const ManageProducts = () => {
       data.append('price', formData.price);
       data.append('quantity', formData.quantity);
       data.append('category', formData.category);
+      
+      // Append images for upload
       images.forEach(img => data.append('images', img));
       videos.forEach(vid => data.append('videos', vid));
 
@@ -211,65 +224,64 @@ const ManageProducts = () => {
             </div>
 
             {/* Row 2 - Price & Quantity */}
-<div style={{
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: '16px',
-  marginBottom: '16px'
-}} className="form-row">
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-    <label style={{ fontSize: '13px', fontWeight: '600', color: '#1e3a8a' }}>Price (TSh) *</label>
-    <input
-      type="number"
-      name="price"
-      value={formData.price}
-      onChange={handleChange}
-      placeholder="e.g. 5000"
-      min="0"
-      step="100"
-      required
-      onKeyDown={(e) => {
-        // Prevent negative sign input
-        if (e.key === '-' || e.key === 'e') {
-          e.preventDefault();
-        }
-      }}
-      style={{
-        padding: '10px 12px',
-        border: '1.5px solid #e2e8f0',
-        borderRadius: '8px',
-        fontSize: '14px',
-        outline: 'none'
-      }}
-    />
-  </div>
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-    <label style={{ fontSize: '13px', fontWeight: '600', color: '#1e3a8a' }}>Stock Quantity *</label>
-    <input
-      type="number"
-      name="quantity"
-      value={formData.quantity}
-      onChange={handleChange}
-      placeholder="e.g. 50"
-      min="0"
-      step="1"
-      required
-      onKeyDown={(e) => {
-        // Prevent negative sign input
-        if (e.key === '-' || e.key === 'e') {
-          e.preventDefault();
-        }
-      }}
-      style={{
-        padding: '10px 12px',
-        border: '1.5px solid #e2e8f0',
-        borderRadius: '8px',
-        fontSize: '14px',
-        outline: 'none'
-      }}
-    />
-  </div>
-</div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '16px',
+              marginBottom: '16px'
+            }} className="form-row">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '600', color: '#1e3a8a' }}>Price (TSh) *</label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  placeholder="e.g. 5000"
+                  min="0"
+                  step="100"
+                  required
+                  onKeyDown={(e) => {
+                    if (e.key === '-' || e.key === 'e') {
+                      e.preventDefault();
+                    }
+                  }}
+                  style={{
+                    padding: '10px 12px',
+                    border: '1.5px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '600', color: '#1e3a8a' }}>Stock Quantity *</label>
+                <input
+                  type="number"
+                  name="quantity"
+                  value={formData.quantity}
+                  onChange={handleChange}
+                  placeholder="e.g. 50"
+                  min="0"
+                  step="1"
+                  required
+                  onKeyDown={(e) => {
+                    if (e.key === '-' || e.key === 'e') {
+                      e.preventDefault();
+                    }
+                  }}
+                  style={{
+                    padding: '10px 12px',
+                    border: '1.5px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
+
             {/* Description */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
               <label style={{ fontSize: '13px', fontWeight: '600', color: '#1e3a8a' }}>Description *</label>
@@ -315,7 +327,7 @@ const ManageProducts = () => {
                     ))}
                   </div>
                 )}
-                <small style={{ fontSize: '11px', color: '#94a3b8' }}>Max 5 images (JPG, PNG, WEBP)</small>
+                <small style={{ fontSize: '11px', color: '#94a3b8' }}>Images will be uploaded to Cloudinary (permanent storage)</small>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '13px', fontWeight: '600', color: '#1e3a8a' }}>Product Videos</label>
@@ -401,8 +413,15 @@ const ManageProducts = () => {
                   <tr key={product._id} style={{ borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ padding: '12px' }}>
                       {product.images && product.images.length > 0 ? (
-                        <img src={`https://monasoap-backend.onrender.com/uploads/${product.images[0]}`
-                       } alt={product.name} style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '8px' }} />
+                        <img 
+                          src={getImageUrl(product.images[0])} 
+                          alt={product.name} 
+                          style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '8px' }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.innerHTML = '<div style="width:45px;height:45px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px">🧼</div>';
+                          }}
+                        />
                       ) : (
                         <div style={{ width: '45px', height: '45px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🧼</div>
                       )}
@@ -444,8 +463,15 @@ const ManageProducts = () => {
               <div key={product._id} style={{ border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', marginBottom: '12px', background: '#fff' }}>
                 <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
                   {product.images && product.images.length > 0 ? (
-                    <img src={`https://monasoap-backend.onrender.com/uploads/${product.images[0]}`}
-               alt={product.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '10px' }} />
+                    <img 
+                      src={getImageUrl(product.images[0])} 
+                      alt={product.name} 
+                      style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '10px' }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = '<div style="width:60px;height:60px;background:#f1f5f9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:28px">🧼</div>';
+                      }}
+                    />
                   ) : (
                     <div style={{ width: '60px', height: '60px', background: '#f1f5f9', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>🧼</div>
                   )}

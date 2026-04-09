@@ -4,17 +4,34 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import API from '../utils/api';
 
-// Helper function for image URLs
+// Helper function for image URLs - FIXED to handle both formats
 const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  if (imagePath.startsWith('http')) return imagePath;
+  // If it's already a full URL (Cloudinary or external), return as is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  // Otherwise, it's a local filename (old format) - will likely 404
   return `https://monasoap-backend.onrender.com/uploads/${imagePath}`;
+};
+
+// Helper to get product images from either format
+const getProductImages = (product) => {
+  // If product has images array
+  if (product.images && product.images.length > 0) {
+    return product.images;
+  }
+  // If product has single imageUrl
+  if (product.imageUrl) {
+    return [product.imageUrl];
+  }
+  return [];
 };
 
 // Helper function for video URLs
 const getVideoUrl = (videoPath) => {
   if (!videoPath) return null;
-  if (videoPath.startsWith('http')) return videoPath;
+  if (videoPath.startsWith('http://') || videoPath.startsWith('https://')) return videoPath;
   return `https://monasoap-backend.onrender.com/uploads/${videoPath}`;
 };
 
@@ -127,6 +144,9 @@ const ProductDetail = () => {
     return '★'.repeat(fullStars) + (hasHalfStar ? '½' : '') + '☆'.repeat(emptyStars);
   };
 
+  // Get images for current product
+  const productImages = product ? getProductImages(product) : [];
+
   if (loading) return (
     <div style={{ textAlign: 'center', padding: '60px' }}>
       <div style={{
@@ -177,11 +197,16 @@ const ProductDetail = () => {
               height: '350px', background: '#f8fafc',
               borderRadius: '16px', overflow: 'hidden', marginBottom: '16px'
             }}>
-              {product.images && product.images.length > 0 ? (
+              {productImages.length > 0 ? (
                 <img
-                  src={getImageUrl(product.images[activeImage])}
+                  src={getImageUrl(productImages[activeImage])}
                   alt={product.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => {
+                    // If image fails to load, show placeholder
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:80px">🧼</div>';
+                  }}
                 />
               ) : (
                 <div style={{
@@ -191,9 +216,9 @@ const ProductDetail = () => {
               )}
             </div>
 
-            {product.images && product.images.length > 1 && (
+            {productImages.length > 1 && (
               <div className="thumbnails" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {product.images.map((img, i) => (
+                {productImages.map((img, i) => (
                   <img
                     key={i}
                     src={getImageUrl(img)}
@@ -204,6 +229,9 @@ const ProductDetail = () => {
                       borderRadius: '10px', cursor: 'pointer',
                       border: i === activeImage ? '2px solid #3b82f6' : '2px solid #e2e8f0',
                       transition: 'all 0.2s'
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
                     }}
                   />
                 ))}
@@ -224,7 +252,7 @@ const ProductDetail = () => {
             )}
           </div>
 
-          {/* Product Info */}
+          {/* Product Info - Keep the rest the same */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <span style={{
               fontSize: '12px', color: '#3b82f6', fontWeight: '600',
@@ -340,7 +368,7 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* Reviews Section */}
+        {/* Reviews Section - Keep the same */}
         <div style={{
           background: '#fff', borderRadius: '24px', padding: '30px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
@@ -428,7 +456,6 @@ const ProductDetail = () => {
                     display: 'flex', alignItems: 'center', gap: '12px',
                     marginBottom: '12px', flexWrap: 'wrap'
                   }}>
-                    {/* ✅ Avatar using getReviewerInitial */}
                     <div style={{
                       width: '44px', height: '44px', borderRadius: '50%',
                       background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
@@ -440,7 +467,6 @@ const ProductDetail = () => {
                     </div>
 
                     <div>
-                      {/* ✅ Name using getReviewerName */}
                       <p style={{ fontWeight: '600', fontSize: '14px', color: '#0f172a', marginBottom: '4px' }}>
                         {getReviewerName(review)}
                       </p>

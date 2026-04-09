@@ -3,10 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import API from '../utils/api';
 
-// Helper function for image URLs - FIXED for Render backend
+// Helper function for image URLs - FIXED for Cloudinary + Render backend
 const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  if (imagePath.startsWith('http')) return imagePath;
+  // If it's already a full URL (Cloudinary), return as is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  // Otherwise, it's a local filename (old format - will likely 404)
   return `https://monasoap-backend.onrender.com/uploads/${imagePath}`;
 };
 
@@ -126,19 +130,30 @@ const Home = () => {
   }, []);
 
   const fetchProducts = async () => {
+    setLoading(true);
     try {
       const params = {};
       if (search) params.search = search;
       if (category) params.category = category;
+      // ✅ FIXED: Using API utility which adds /api prefix
       const res = await API.get('/products', { params });
       setProducts(res.data);
-    } catch { toast.error('Failed to load products'); }
-    finally { setLoading(false); }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast.error('Failed to load products');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchSettings = async () => {
-    try { const res = await API.get('/settings'); setSettings(res.data); }
-    catch { console.log('No settings'); }
+    try {
+      // ✅ FIXED: Using API utility which adds /api prefix
+      const res = await API.get('/settings');
+      setSettings(res.data);
+    } catch (error) {
+      console.log('No settings:', error);
+    }
   };
 
   const lipaNumber = settings?.lipaNumber || '+255 700 000 000';
@@ -246,9 +261,26 @@ const Home = () => {
                 >
                   <div className="ms-card__img-box">
                     {p.images?.length > 0 ? (
-                      // FIXED: Using getImageUrl helper instead of hardcoded localhost
-                      <img src={getImageUrl(p.images[0])} alt={p.name}
-                        className={`ms-card__img ${hoveredCard === p._id ? 'ms-card__img--zoom' : ''}`} />
+                      <img 
+                        src={getImageUrl(p.images[0])} 
+                        alt={p.name}
+                        className={`ms-card__img ${hoveredCard === p._id ? 'ms-card__img--zoom' : ''}`}
+                        onError={(e) => {
+                          // If image fails to load, show placeholder
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = '<div class="ms-card__no-img">🧼</div>';
+                        }}
+                      />
+                    ) : p.imageUrl ? (
+                      <img 
+                        src={getImageUrl(p.imageUrl)} 
+                        alt={p.name}
+                        className={`ms-card__img ${hoveredCard === p._id ? 'ms-card__img--zoom' : ''}`}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = '<div class="ms-card__no-img">🧼</div>';
+                        }}
+                      />
                     ) : (
                       <div className="ms-card__no-img">🧼</div>
                     )}

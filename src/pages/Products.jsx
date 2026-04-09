@@ -51,6 +51,27 @@ const Products = () => {
     return isNaN(n) ? '0' : n.toLocaleString();
   };
 
+  // Helper function to get image URL (handles both old and new format)
+  const getImageUrl = (product) => {
+    // If product has images array
+    if (product.images && product.images.length > 0) {
+      const firstImage = product.images[0];
+      // Check if it's already a full URL (Cloudinary)
+      if (firstImage.startsWith('http://') || firstImage.startsWith('https://')) {
+        return firstImage;
+      }
+      // If it's just a filename (old format), it's probably gone (404)
+      // Return a placeholder or the old URL (will 404)
+      return `https://monasoap-backend.onrender.com/uploads/${firstImage}`;
+    }
+    // If product has direct imageUrl field (Cloudinary URL)
+    if (product.imageUrl && (product.imageUrl.startsWith('http://') || product.imageUrl.startsWith('https://'))) {
+      return product.imageUrl;
+    }
+    // Fallback placeholder
+    return null;
+  };
+
   return (
     <div className="pr-page">
 
@@ -137,55 +158,63 @@ const Products = () => {
             </div>
           ) : (
             <div className="pr-grid">
-              {products.map((p, i) => (
-                <div
-                  key={p._id}
-                  className={`pr-card ${gridVisible ? 'pr-vis' : 'pr-hid'}`}
-                  style={{ animationDelay: `${0.05 + i * 0.06}s` }}
-                  onClick={() => navigate(`/product/${p._id}`)}
-                  onMouseEnter={() => setHoveredCard(p._id)}
-                  onMouseLeave={() => setHoveredCard(null)}
-                >
-                  <div className="pr-card__img-box">
-                    {p.images?.length > 0 ? (
-                      <img
-                      src={`https://monasoap-backend.onrender.com/uploads/${p.images[0]}`}
-                        alt={p.name}
-                        className={`pr-card__img ${hoveredCard === p._id ? 'pr-card__img--zoom' : ''}`}
-                      />
-                    ) : (
-                      <div className="pr-card__no-img">🧼</div>
-                    )}
-                    {!p.isAvailable && <div className="pr-card__oos">Out of Stock</div>}
-                    {p.isAvailable && <div className="pr-card__avail">Available</div>}
-                  </div>
-                  <div className="pr-card__body">
-                    <span className="pr-card__tag">{p.category}</span>
-                    <h3 className="pr-card__name">{p.name}</h3>
-                    <p className="pr-card__desc">{p.description?.substring(0, 90)}{p.description?.length > 90 ? '…' : ''}</p>
-                    <div className="pr-card__footer">
-                      <div className="pr-card__price-wrap">
-                        <span className="pr-card__price-lbl">Price</span>
-                        <span className="pr-card__price">TSh {formatPrice(p.price)}</span>
+              {products.map((p, i) => {
+                const imageUrl = getImageUrl(p);
+                return (
+                  <div
+                    key={p._id}
+                    className={`pr-card ${gridVisible ? 'pr-vis' : 'pr-hid'}`}
+                    style={{ animationDelay: `${0.05 + i * 0.06}s` }}
+                    onClick={() => navigate(`/product/${p._id}`)}
+                    onMouseEnter={() => setHoveredCard(p._id)}
+                    onMouseLeave={() => setHoveredCard(null)}
+                  >
+                    <div className="pr-card__img-box">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={p.name}
+                          className={`pr-card__img ${hoveredCard === p._id ? 'pr-card__img--zoom' : ''}`}
+                          onError={(e) => {
+                            // If image fails to load (404), show placeholder
+                            e.target.style.display = 'none';
+                            e.target.parentElement.innerHTML = '<div class="pr-card__no-img">🧼</div>';
+                          }}
+                        />
+                      ) : (
+                        <div className="pr-card__no-img">🧼</div>
+                      )}
+                      {!p.isAvailable && <div className="pr-card__oos">Out of Stock</div>}
+                      {p.isAvailable && <div className="pr-card__avail">Available</div>}
+                    </div>
+                    <div className="pr-card__body">
+                      <span className="pr-card__tag">{p.category}</span>
+                      <h3 className="pr-card__name">{p.name}</h3>
+                      <p className="pr-card__desc">{p.description?.substring(0, 90)}{p.description?.length > 90 ? '…' : ''}</p>
+                      <div className="pr-card__footer">
+                        <div className="pr-card__price-wrap">
+                          <span className="pr-card__price-lbl">Price</span>
+                          <span className="pr-card__price">TSh {formatPrice(p.price)}</span>
+                        </div>
+                        <button
+                          className={`pr-card__btn ${!p.isAvailable ? 'pr-card__btn--off' : ''}`}
+                          onClick={e => {
+                            e.stopPropagation();
+                            if (p.isAvailable) navigate(`/product/${p._id}`);
+                          }}
+                        >
+                          {p.isAvailable ? (
+                            <>
+                              Order Now
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </>
+                          ) : 'Unavailable'}
+                        </button>
                       </div>
-                      <button
-                        className={`pr-card__btn ${!p.isAvailable ? 'pr-card__btn--off' : ''}`}
-                        onClick={e => {
-                          e.stopPropagation();
-                          if (p.isAvailable) navigate(`/product/${p._id}`);
-                        }}
-                      >
-                        {p.isAvailable ? (
-                          <>
-                            Order Now
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                          </>
-                        ) : 'Unavailable'}
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
