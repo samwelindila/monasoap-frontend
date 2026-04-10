@@ -9,10 +9,14 @@ const API = axios.create({
   timeout: 60000,
 });
 
-// Add a request interceptor to debug
+// ✅ Attach token to every request
 API.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   console.log('📤 API Request:', config.method.toUpperCase(), config.baseURL + config.url);
   return config;
 });
 
-export default API;                                 
+export default API;
