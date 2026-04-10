@@ -79,6 +79,7 @@ const ManageProducts = () => {
     return `https://monasoap-backend.onrender.com/uploads/${imagePath}`;
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -90,21 +91,47 @@ const ManageProducts = () => {
       data.append('quantity', formData.quantity);
       data.append('category', formData.category);
       
-      // Append images for upload
       images.forEach(img => data.append('images', img));
       videos.forEach(vid => data.append('videos', vid));
-
-      if (editProduct) {
-        await API.put(`/products/${editProduct._id}`, data);
-        toast.success('Product updated successfully!');
-      } else {
-        await API.post('/products', data);
-        toast.success('Product added successfully!');
+  
+      // ✅ Debug
+      console.log('🖼️ Images count:', images.length);
+      for (let pair of data.entries()) {
+        console.log('📦 FormData:', pair[0], pair[1]);
       }
+  
+      // ✅ Use fetch directly instead of axios to avoid Content-Type issues
+      const token = localStorage.getItem('token');
+      const baseURL = process.env.REACT_APP_API_URL || 'https://monasoap-backend.onrender.com/api';
+      
+      const url = editProduct 
+        ? `${baseURL}/products/${editProduct._id}`
+        : `${baseURL}/products`;
+      
+      const method = editProduct ? 'PUT' : 'POST';
+  
+      const response = await fetch(url, {
+        method,
+        headers: {
+          // ✅ NO Content-Type here — browser sets it automatically with boundary
+          'Authorization': `Bearer ${token}`
+        },
+        body: data
+      });
+  
+      const result = await response.json();
+      console.log('✅ Server response:', result);
+  
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to save product');
+      }
+  
+      toast.success(editProduct ? 'Product updated successfully!' : 'Product added successfully!');
       resetForm();
       fetchProducts();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save product');
+      console.error('❌ Submit error:', err);
+      toast.error(err.message || 'Failed to save product');
     } finally {
       setSubmitting(false);
     }
@@ -506,6 +533,7 @@ const ManageProducts = () => {
           </div>
         </div>
       )}
+      
 
       <style>{`
         @keyframes spin {
