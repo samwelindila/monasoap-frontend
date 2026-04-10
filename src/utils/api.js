@@ -3,19 +3,23 @@ import axios from 'axios';
 
 const API = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'https://monasoap-backend.onrender.com/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
   timeout: 120000,
 });
 
-// ✅ Attach token to every request
+// ✅ Attach token + smart Content-Type to every request
 API.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // ✅ Don't override Content-Type for FormData (multipart/form-data)
+    // Let the browser set it automatically with the correct boundary
+    if (!(config.data instanceof FormData)) {
+      config.headers['Content-Type'] = 'application/json';
+    }
+
     console.log('📤 API Request:', config.method.toUpperCase(), config.baseURL + config.url);
     return config;
   },
@@ -37,7 +41,7 @@ API.interceptors.response.use(
     ) {
       config._retryCount++;
       console.log(`🔄 Retrying request... attempt ${config._retryCount}`);
-      await new Promise(res => setTimeout(res, 3000)); // wait 3 seconds
+      await new Promise(res => setTimeout(res, 3000));
       return API(config);
     }
 
